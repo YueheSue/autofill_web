@@ -9,6 +9,21 @@ import CustomDatePicker from './components/CustomDatePicker';
 // Polyfill to fix potential issues with ElementReact
 window.AsyncValidator = AsyncValidator;
 
+const RANDOM_QUESTION_POOL = [
+  '是否喜欢听故事',
+  '小名',
+  '喜欢吃的食物',
+  '去过哪些城市',
+  '是否喜欢听故事',
+  '一天睡眠几小时',
+  '孩子的身高',
+  '孩子日常排便时间',
+  '是否能独立穿衣服',
+  '日常照顾人',
+  '喜欢吃什么水果',
+  '是否能独立吃饭'
+];
+
 function KidsFormPage({ userInfo, onLogout }) {
   // Form state
   const [form, setForm] = useState({
@@ -27,6 +42,9 @@ function KidsFormPage({ userInfo, onLogout }) {
     motherIdType: '',
     motherName: '',
     motherIdNumber: '',
+    randomQuestion1: '',
+    randomQuestion2: '',
+    randomQuestion3: '',
     captchaImage: '',
     smsCode: ''
   });
@@ -110,6 +128,7 @@ function KidsFormPage({ userInfo, onLogout }) {
     answer: '',
     image: ''
   });
+  const [randomQuestions, setRandomQuestions] = useState([]);
 
   // Function to generate captcha image
   const generateCaptchaImage = (text) => {
@@ -242,7 +261,34 @@ function KidsFormPage({ userInfo, onLogout }) {
     }
     // Generate new captcha
     generateMathCaptcha();
+    setRandomQuestions(prevQuestions => {
+      const shuffled = [...RANDOM_QUESTION_POOL].sort(() => Math.random() - 0.5);
+      const nextQuestions = shuffled.slice(0, 3);
+      if (
+        prevQuestions.length === 3 &&
+        prevQuestions.every((question, idx) => question === nextQuestions[idx])
+      ) {
+        const reshuffled = [...RANDOM_QUESTION_POOL].sort(() => Math.random() - 0.5);
+        return reshuffled.slice(0, 3);
+      }
+      return nextQuestions;
+    });
+    setForm(prevForm => ({
+      ...prevForm,
+      randomQuestion1: '',
+      randomQuestion2: '',
+      randomQuestion3: ''
+    }));
   };
+
+  const generateRandomQuestions = useCallback(() => {
+    const shuffled = [...RANDOM_QUESTION_POOL].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 3);
+  }, []);
+
+  useEffect(() => {
+    setRandomQuestions(generateRandomQuestions());
+  }, [generateRandomQuestions]);
 
   // Handle form input changes
   const handleChange = (key, value) => {
@@ -368,6 +414,9 @@ function KidsFormPage({ userInfo, onLogout }) {
       motherIdType: '',
       motherName: '',
       motherIdNumber: '',
+      randomQuestion1: '',
+      randomQuestion2: '',
+      randomQuestion3: '',
       captchaImage: '',
       smsCode: ''
     });
@@ -439,249 +488,284 @@ function KidsFormPage({ userInfo, onLogout }) {
         )}
         
         <form className="registration-form" onSubmit={handleSubmit}>
-          {/* Row 1 */}
-          <div className="form-row">
-            <div className="form-group">
-              <label>幼儿证件类型</label>
-              <ElementReact.Select 
-                value={form.childIdType} 
-                placeholder={formFields.line1["幼儿证件类型"]}
-                onChange={value => handleChange('childIdType', value)}
-              >
-                <ElementReact.Select.Option label="居民身份证" value="居民身份证" />
-                <ElementReact.Select.Option label="护照" value="护照" />
-              </ElementReact.Select>
-            </div>
+          <div className="form-section">
+            <h2 className="section-title">幼儿信息</h2>
 
-            <div className="form-group">
-              <label>联系手机</label>
-              <ElementReact.Input 
-                value={form.contactPhone} 
-                placeholder={formFields.line1["联系手机"]}
-                onChange={value => handleChange('contactPhone', value)}
-              />
-              {formErrors.contactPhone && <div className="error-message">{formErrors.contactPhone}</div>}
-            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>幼儿证件类型</label>
+                <ElementReact.Select
+                  value={form.childIdType}
+                  placeholder={formFields.line1["幼儿证件类型"]}
+                  onChange={value => handleChange('childIdType', value)}
+                >
+                  <ElementReact.Select.Option label="居民身份证" value="居民身份证" />
+                  <ElementReact.Select.Option label="护照" value="护照" />
+                </ElementReact.Select>
+              </div>
 
-            <div className="form-group">
-              <label>幼儿与在沪房产持有人关系</label>
-              <ElementReact.Select 
-                value={form.relationship} 
-                placeholder={formFields.line1["幼儿与在沪房产持有人关系"]}
-                onChange={value => handleChange('relationship', value)}
-              >
-                <ElementReact.Select.Option label="父亲" value="父亲" />
-                <ElementReact.Select.Option label="母亲" value="母亲" />
-              </ElementReact.Select>
-            </div>
-          </div>
-
-          {/* Row 2 */}
-          <div className="form-row">
-            <div className="form-group">
-              <label>幼儿证件号</label>
-              <ElementReact.Input 
-                value={form.childIdNumber} 
-                placeholder={formFields.line2["幼儿证件号"]}
-                onChange={value => handleChange('childIdNumber', value)}
-              />
-              {formErrors.childIdNumber && <div className="error-message">{formErrors.childIdNumber}</div>}
-            </div>
-
-            <div className="form-group">
-              <label>幼儿姓名</label>
-              <ElementReact.Input 
-                value={form.childName} 
-                placeholder={formFields.line2["幼儿姓名"]}
-                onChange={value => handleChange('childName', value)}
-              />
-              {formErrors.childName && <div className="error-message">{formErrors.childName}</div>}
-            </div>
-
-            <div className="form-group">
-              <label>幼儿性别</label>
-              <ElementReact.Select 
-                value={form.childGender} 
-                placeholder={formFields.line2["幼儿性别"]}
-                onChange={value => handleChange('childGender', value)}
-              >
-                <ElementReact.Select.Option label="男" value="男" />
-                <ElementReact.Select.Option label="女" value="女" />
-                <ElementReact.Select.Option label="未知" value="未知" />
-              </ElementReact.Select>
-            </div>
-          </div>
-
-          {/* Row 3 */}
-          <div className="form-row">
-            <div className="form-group">
-              <label>幼儿出生日期</label>
-              <CustomDatePicker
-                value={form.childBirthDate}
-                placeholder={formFields.line3["幼儿出生日期"]}
-                onChange={value => handleChange('childBirthDate', value)}
-                format="yyyy-MM-dd"
-                isShowTime={false}
-                selectionMode="day"
-                firstDayOfWeek={1}
-                className="full-width-datepicker"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>学龄段</label>
-              <ElementReact.Select 
-                value={form.ageGroup} 
-                placeholder={formFields.line3["学龄段"]}
-                onChange={value => handleChange('ageGroup', value)}
-              >
-                <ElementReact.Select.Option label="托班" value="托班" />
-                <ElementReact.Select.Option label="小班" value="小班" />
-              </ElementReact.Select>
-            </div>
-
-            <div className="form-group">
-              <label>幼儿户籍所在地</label>
-              <ElementReact.Select 
-                value={form.childResidence} 
-                placeholder={formFields.line3["幼儿户籍所在地"]}
-                onChange={value => handleChange('childResidence', value)}
-              >
-                <ElementReact.Select.Option label="上海市" value="上海市" />
-                <ElementReact.Select.Option label="北京市" value="北京市" />
-                <ElementReact.Select.Option label="广东省" value="广东省" />
-                <ElementReact.Select.Option label="其他" value="其他" />
-              </ElementReact.Select>
-            </div>
-          </div>
-
-          {/* Row 4 */}
-          <div className="form-row">
-            <div className="form-group">
-              <label>父亲证件类型</label>
-              <ElementReact.Select 
-                value={form.fatherIdType} 
-                placeholder={formFields.line4["父亲证件类型"]}
-                onChange={value => handleChange('fatherIdType', value)}
-              >
-                <ElementReact.Select.Option label="居民身份证" value="居民身份证" />
-                <ElementReact.Select.Option label="护照" value="护照" />
-              </ElementReact.Select>
-            </div>
-
-            <div className="form-group">
-              <label>父亲姓名</label>
-              <ElementReact.Input 
-                value={form.fatherName} 
-                placeholder={formFields.line4["父亲姓名"]}
-                onChange={value => handleChange('fatherName', value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>父亲证件号</label>
-              <ElementReact.Input 
-                value={form.fatherIdNumber} 
-                placeholder={formFields.line4["父亲证件号"]}
-                onChange={value => handleChange('fatherIdNumber', value)}
-              />
-              {formErrors.fatherIdNumber && <div className="error-message">{formErrors.fatherIdNumber}</div>}
-            </div>
-          </div>
-
-          {/* Row 5 */}
-          <div className="form-row">
-            <div className="form-group">
-              <label>母亲证件类型</label>
-              <ElementReact.Select 
-                value={form.motherIdType} 
-                placeholder={formFields.line5["母亲证件类型"]}
-                onChange={value => handleChange('motherIdType', value)}
-              >
-                <ElementReact.Select.Option label="居民身份证" value="居民身份证" />
-                <ElementReact.Select.Option label="护照" value="护照" />
-              </ElementReact.Select>
-            </div>
-
-            <div className="form-group">
-              <label>母亲姓名</label>
-              <ElementReact.Input 
-                value={form.motherName} 
-                placeholder={formFields.line5["母亲姓名"]}
-                onChange={value => handleChange('motherName', value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>母亲证件号</label>
-              <ElementReact.Input 
-                value={form.motherIdNumber} 
-                placeholder={formFields.line5["母亲证件号"]}
-                onChange={value => handleChange('motherIdNumber', value)}
-              />
-            </div>
-          </div>
-
-          {/* Row 6 */}
-          <div className="form-row">
-            <div className="form-group">
-              <label>验证码</label>
-              <div className="captcha-container">
-                <ElementReact.Input 
-                  value={form.captchaImage} 
-                  placeholder="请输入计算结果"
-                  onChange={value => handleChange('captchaImage', value)}
-                  style={{ width: '130px' }}
-                  name="captchaImage"
-                  className={
-                    form.captchaImage === mathCaptcha.answer && form.captchaImage !== '' 
-                      ? 'captcha-validated' 
-                      : formErrors.captchaImage 
-                        ? 'captcha-error' 
-                        : ''
-                  }
+              <div className="form-group">
+                <label>幼儿姓名</label>
+                <ElementReact.Input
+                  value={form.childName}
+                  placeholder={formFields.line2["幼儿姓名"]}
+                  onChange={value => handleChange('childName', value)}
                 />
-                <div className="captcha-image">
-                  {mathCaptcha.image && (
-                    <img 
-                      src={mathCaptcha.image} 
-                      alt="数学验证码" 
-                      style={{ 
-                        height: '46px', 
-                        maxWidth: '160px',
-                        borderRadius: '4px'
-                      }} 
-                    />
-                  )}
+                {formErrors.childName && <div className="error-message">{formErrors.childName}</div>}
+              </div>
+
+              <div className="form-group">
+                <label>幼儿户籍所在地</label>
+                <ElementReact.Select
+                  value={form.childResidence}
+                  placeholder={formFields.line3["幼儿户籍所在地"]}
+                  onChange={value => handleChange('childResidence', value)}
+                >
+                  <ElementReact.Select.Option label="上海市" value="上海市" />
+                  <ElementReact.Select.Option label="北京市" value="北京市" />
+                  <ElementReact.Select.Option label="广东省" value="广东省" />
+                  <ElementReact.Select.Option label="其他" value="其他" />
+                </ElementReact.Select>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>幼儿证件号</label>
+                <ElementReact.Input
+                  value={form.childIdNumber}
+                  placeholder={formFields.line2["幼儿证件号"]}
+                  onChange={value => handleChange('childIdNumber', value)}
+                />
+                {formErrors.childIdNumber && <div className="error-message">{formErrors.childIdNumber}</div>}
+              </div>
+
+              <div className="form-group">
+                <label>幼儿性别</label>
+                <ElementReact.Select
+                  value={form.childGender}
+                  placeholder={formFields.line2["幼儿性别"]}
+                  onChange={value => handleChange('childGender', value)}
+                >
+                  <ElementReact.Select.Option label="男" value="男" />
+                  <ElementReact.Select.Option label="女" value="女" />
+                  <ElementReact.Select.Option label="未知" value="未知" />
+                </ElementReact.Select>
+              </div>
+
+              <div className="form-group">
+                <label>幼儿与在沪房产持有人关系</label>
+                <ElementReact.Select
+                  value={form.relationship}
+                  placeholder={formFields.line1["幼儿与在沪房产持有人关系"]}
+                  onChange={value => handleChange('relationship', value)}
+                >
+                  <ElementReact.Select.Option label="父亲" value="父亲" />
+                  <ElementReact.Select.Option label="母亲" value="母亲" />
+                </ElementReact.Select>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>幼儿出生日期</label>
+                <CustomDatePicker
+                  value={form.childBirthDate}
+                  placeholder={formFields.line3["幼儿出生日期"]}
+                  onChange={value => handleChange('childBirthDate', value)}
+                  format="yyyy-MM-dd"
+                  isShowTime={false}
+                  selectionMode="day"
+                  firstDayOfWeek={1}
+                  className="full-width-datepicker"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>学龄段</label>
+                <ElementReact.Select
+                  value={form.ageGroup}
+                  placeholder={formFields.line3["学龄段"]}
+                  onChange={value => handleChange('ageGroup', value)}
+                >
+                  <ElementReact.Select.Option label="托班" value="托班" />
+                  <ElementReact.Select.Option label="小班" value="小班" />
+                </ElementReact.Select>
+              </div>
+
+              <div className="form-group">
+                {/* Empty cell for layout consistency */}
+              </div>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h2 className="section-title">幼儿父亲信息</h2>
+            <div className="form-row">
+              <div className="form-group">
+                <label>父亲证件类型</label>
+                <ElementReact.Select
+                  value={form.fatherIdType}
+                  placeholder={formFields.line4["父亲证件类型"]}
+                  onChange={value => handleChange('fatherIdType', value)}
+                >
+                  <ElementReact.Select.Option label="居民身份证" value="居民身份证" />
+                  <ElementReact.Select.Option label="护照" value="护照" />
+                </ElementReact.Select>
+              </div>
+
+              <div className="form-group">
+                <label>父亲姓名</label>
+                <ElementReact.Input
+                  value={form.fatherName}
+                  placeholder={formFields.line4["父亲姓名"]}
+                  onChange={value => handleChange('fatherName', value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>父亲证件号</label>
+                <ElementReact.Input
+                  value={form.fatherIdNumber}
+                  placeholder={formFields.line4["父亲证件号"]}
+                  onChange={value => handleChange('fatherIdNumber', value)}
+                />
+                {formErrors.fatherIdNumber && <div className="error-message">{formErrors.fatherIdNumber}</div>}
+              </div>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h2 className="section-title">幼儿母亲信息</h2>
+            <div className="form-row">
+              <div className="form-group">
+                <label>母亲证件类型</label>
+                <ElementReact.Select
+                  value={form.motherIdType}
+                  placeholder={formFields.line5["母亲证件类型"]}
+                  onChange={value => handleChange('motherIdType', value)}
+                >
+                  <ElementReact.Select.Option label="居民身份证" value="居民身份证" />
+                  <ElementReact.Select.Option label="护照" value="护照" />
+                </ElementReact.Select>
+              </div>
+
+              <div className="form-group">
+                <label>母亲姓名</label>
+                <ElementReact.Input
+                  value={form.motherName}
+                  placeholder={formFields.line5["母亲姓名"]}
+                  onChange={value => handleChange('motherName', value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>母亲证件号</label>
+                <ElementReact.Input
+                  value={form.motherIdNumber}
+                  placeholder={formFields.line5["母亲证件号"]}
+                  onChange={value => handleChange('motherIdNumber', value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h2 className="section-title">幼儿相关信息</h2>
+            <div className="form-row">
+              <div className="form-group">
+                <label>{randomQuestions[0] || '问题 1'}</label>
+                <ElementReact.Input
+                  value={form.randomQuestion1}
+                  placeholder="请输入"
+                  onChange={value => handleChange('randomQuestion1', value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{randomQuestions[1] || '问题 2'}</label>
+                <ElementReact.Input
+                  value={form.randomQuestion2}
+                  placeholder="请输入"
+                  onChange={value => handleChange('randomQuestion2', value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{randomQuestions[2] || '问题 3'}</label>
+                <ElementReact.Input
+                  value={form.randomQuestion3}
+                  placeholder="请输入"
+                  onChange={value => handleChange('randomQuestion3', value)}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>联系手机</label>
+                <ElementReact.Input
+                  value={form.contactPhone}
+                  placeholder={formFields.line1["联系手机"]}
+                  onChange={value => handleChange('contactPhone', value)}
+                />
+                {formErrors.contactPhone && <div className="error-message">{formErrors.contactPhone}</div>}
+              </div>
+
+              <div className="form-group">
+                <label>短信验证</label>
+                <ElementReact.Input
+                  value={form.smsCode}
+                  placeholder="请输入4位验证码"
+                  onChange={value => handleChange('smsCode', value.replace(/\D/g, '').slice(0, 4))}
+                  maxLength={4}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>验证码</label>
+                <div className="captcha-container">
+                  <ElementReact.Input
+                    value={form.captchaImage}
+                    placeholder="请输入计算结果"
+                    onChange={value => handleChange('captchaImage', value)}
+                    style={{ width: '130px' }}
+                    name="captchaImage"
+                    className={
+                      form.captchaImage === mathCaptcha.answer && form.captchaImage !== ''
+                        ? 'captcha-validated'
+                        : formErrors.captchaImage
+                          ? 'captcha-error'
+                          : ''
+                    }
+                  />
+                  <div className="captcha-image">
+                    {mathCaptcha.image && (
+                      <img
+                        src={mathCaptcha.image}
+                        alt="数学验证码"
+                        style={{
+                          height: '46px',
+                          maxWidth: '160px',
+                          borderRadius: '4px'
+                        }}
+                      />
+                    )}
+                  </div>
+                  <ElementReact.Button
+                    type="text"
+                    icon="refresh"
+                    style={{ marginLeft: '5px' }}
+                    onClick={refreshMathCaptcha}>
+                    获取验证码
+                  </ElementReact.Button>
                 </div>
-                <ElementReact.Button 
-                  type="text" 
-                  icon="refresh" 
-                  style={{ marginLeft: '5px' }}
-                  onClick={refreshMathCaptcha}>
-                  获取验证码
-                </ElementReact.Button>
+                {formErrors.captchaImage && <div className="error-message">{formErrors.captchaImage}</div>}
               </div>
-              {formErrors.captchaImage && <div className="error-message">{formErrors.captchaImage}</div>}
-            </div>
 
-            <div className="form-group">
-              <label>短信验证码</label>
-              <div className="sms-container">
-                <ElementReact.Input 
-                  value={form.smsCode} 
-                  placeholder={formFields.line6["短信验证码"]}
-                  onChange={value => handleChange('smsCode', value)}
-                  style={{ width: '65%' }}
-                />
-                <ElementReact.Button type="primary" size="small" style={{ marginLeft: '8px' }}>
-                  进行登记
-                </ElementReact.Button>
+              <div className="form-group">
+                {/* Empty cell for layout consistency */}
               </div>
-            </div>
-
-            <div className="form-group">
-              {/* Empty cell for layout consistency */}
             </div>
           </div>
 
