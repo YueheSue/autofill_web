@@ -13,6 +13,5 @@ npm install --legacy-peer-deps
 # Make sure ajv is explicitly installed with a compatible version
 npm install ajv@6.12.6 ajv-keywords@3.5.2 --legacy-peer-deps --no-save
 
-# Run the build with the appropriate flags for Node.js 18
-# For Node.js 18+, we don't need --openssl-legacy-provider anymore
+# Run the build (compatible with current Vercel Node runtime)
 npm run build 
