@@ -27,6 +27,6 @@
   ],
   "env": {
     "NODE_ENV": "production",
-    "NODE_VERSION": "18.x"
+    "NODE_VERSION": "24.x"
   }
 } 
